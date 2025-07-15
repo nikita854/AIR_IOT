@@ -1,0 +1,25 @@
+<!--Load a Table and Display at the center-->
+<section>
+  <div class="tbl-header">
+    <table cellpadding="0" cellspacing="0" border="0">
+      <thead>
+        <tr>
+          <th>Nodes name</th>
+          <th>Last Update</th>
+        </tr>
+      </thead>
+    </table>
+  </div>
+  <div class="tbl-content">
+    <table cellpadding="0" cellspacing="0" border="0">
+      <tbody>
+        {% for i in Working_Nodes%}
+        <tr>
+          <td>{{i.name}}</td>
+          <td>{{i.last_update}}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>

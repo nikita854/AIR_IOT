@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html data-layout-mode="dark">
+{% load static %}
+{% load leaflet_tags %}
+
+<head>
+    <!-- Meta Data -->
+    <title>Dashboard - WaterIoT IIITH</title>
+    <meta name="viewport" content="width=device-width, user-scalable=false,">
+    <link rel="icon" href="{% static 'images/airIoT_logo.png' %}">
+    <link rel="icon" href="{% static 'images/markers-soft.png' %}">
+    <link rel="icon" href="{% static 'images/markers-shadow.png' %}">
+    <!-- Meta Data End -->
+
+    <!-- List of js -->
+    <script src="https://kit.fontawesome.com/f0920b87d6.js" crossorigin="anonymous"></script>
+    <script src="{% static 'js/jquery.min.js' %}"></script>
+    <script src="{% static 'js/bootstrap.min.js' %}"></script>
+    {% leaflet_js %}
+    <script src="{% static 'js/leaflet.ajax.js' %}"></script>
+    <script src="{% static 'js/chart.min.js' %}"></script>
+    <script src="{% static 'js/graph.js'%}"></script>
+    <script type="text/javascript" src="{% static 'js/index.js' %}"></script>
+    <script src="{% static 'js/leaflet.awesome-markers.js' %}"></script>
+    <script>
+        var mapIconPath = " {% static 'js/img-ap/'%}";
+        loadData(
+            '{{water|safe}}',
+            "{% url 'waterdataurl' %} ",
+            '{{latestwater|safe}}',
+            '{{datawater|safe}}',
+            '{{flowchangewater|safe}}',
+            '{{staticnodes|safe}}',
+            '{{borewellnodes|safe}}',
+            '{{tankdata|safe}}',
+            '{{borewelldata|safe}}',
+            "{% url 'tankdataurl' %} ",
+            "{% url 'borewelldataurl' %} ",
+            '{{datatankgraph|safe}}',
+            '{{databorewellgraph|safe}}',
+        );
+    </script>
+    <script src="{% static 'js/L.Path.DashFlow.js'%}"></script>
+    <script src="{% static 'js/mapmodification.js'%}"></script>
+    <script src="{% static 'js/buttonfunction.js'%}"></script>
+    <script src="{% static 'js/leafletcoloricon.js'%}"></script>
+    <script src="{% static 'js/chartConfig.js' %}"></script>
+
+    <script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.10.2/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script>
+        $(document).ready(function(){
+            $('[data-dismiss="modal"]').click(function(){
+                var target = $(this).closest('.modal').attr('id');
+                $('#' + target).modal('hide');
+            });
+        });
+    </script>
+    <!-- js List End -->
+
+    <!-- List of css and styles -->
+    <link rel='stylesheet' href='https://fonts.googleapis.com/css?family=Poppins'>
+    <link rel="stylesheet" href="http://code.ionicframework.com/ionicons/1.5.2/css/ionicons.min.css">
+    <link rel="stylesheet" href="{% static 'css/leaflet.awesome-markers.css' %}">
+    <link rel="stylesheet" href=" {% static 'css/bootstrap.min.css' %} ">
+    <link rel="stylesheet" href=" {% static 'css/charts.min.css' %} ">
+    <link rel="stylesheet" type="text/css" href="{% static 'fontawesome/css/all.min.css' %}" />
+    <link rel="stylesheet" href=" {% static 'css/style.css' %} ">
+
+    {% leaflet_css %}
+    <!-- css List End -->
+
+    <!-- Loading Navbar functions-->
+    <script>
+        window.onload = function () {
+            addfunction();
+        }
+    </script>
+</head>
+
+<body style="overflow-x:hidden ;">
+    <!-- Top Navbar-->
+    <!-- Top Navbar Ends -->
+
+    <!-- Map Menubar-->
+    <nav class="navbar navbar-expand-md navbar-dark"
+        style="  width: 98%;  z-index: 9999; position: fixed; background-color: #123462;left:1.72vh; color: #ffffff; padding: 1vh; top:1vh; border-radius:5vh">
+        <div class="container-fluid">
+            <a class="navbar-brand " href="{% url 'home' %}" style="color: #ffffff; padding-left:10px;">
+                <img src="{% static 'images/iiit-new.png' %}" height="35" border: 5px;>
+            </a>
+            <h3 id="title">WaterIoT</h3>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link" style="color: #ffffff;" href="https://www.iiit.ac.in/">IIIT</a>
+                    </li>
+                    <!-- <li class="nav-item">
+                        <a class="nav-link" href="#" onClick="alertNotiBar()" id="nodes_state"style="color: #ffffff;"  >
+                            Status of Meter
+                        </a>
+                    </li> -->
+                    <li class="nav-item ">
+                        <a class="nav-link" style="color: #ffffff;" href="https://spcrc.iiit.ac.in/">SPCRC</a>
+                    </li>
+                    <li class="nav-item ">
+                        <a class="nav-link" style="color: #ffffff;" href="#" data-toggle="modal" data-target="#nodeStatusPanel">Status of Node</a>
+                    </li>
+                </ul>
+                <ul class="navbar-nav">
+                    <li class="nav-item dropdown btnstyle ">
+                        <a class="nav-link dropdown-toggle" href="#" id="typeofnodes" role="button"
+                            data-bs-toggle="dropdown" aria-expanded="false" style="padding: 5px; color: #ffffff;">
+                            All Nodes
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdownMenuLink"
+                            id="listoftypeofnodes">
+                            <li><a class="dropdown-item" id="allnodes">All Nodes</a></li>
+                            <li><a class="dropdown-item" id="tanknodes">Tanks</a></li>
+                            <li><a class="dropdown-item" id="meternodes_analog">Prawah</a></li>
+                            <li><a class="dropdown-item" id="meternodes_digital">Water Meters~Digital</a></li>
+                            <li><a class="dropdown-item" id="borewellnodes">Borewells</a></li>
+                            <li><a class="dropdown-item" id="sumpnodes">Sumps</a></li>
+                        </ul>
+                    </li>
+                    <!--<li class="nav-item dropdown btnstyle ">
+                        <a class="nav-link dropdown-toggle" href="#" id="parameters" role="button" data-bs-toggle="dropdown" aria-expanded="false" style="padding: 5px; color: #ffffff;">
+                        Total Flow
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdownMenuLink" id="parametrlist">
+                            {% comment %} <li><a class="dropdown-item"  id="aqi">AQI &micro;g/m<sup>3</sup></a></li> {% endcomment %}
+                            <li><a class="dropdown-item"  id="totalflow">Total Flow</a></li>
+                            <li><a class="dropdown-item"  id="flowrate">Flow Rate</a></li>
+                            <li><a class="dropdown-item"  id="aqi">AQI </a></li>
+                            <li><a class="dropdown-item"  id="pm25">PM<sub>2.50</sub> &micro;g/m<sup>3</sup></a></li>
+                            <li><a class="dropdown-item"  id="pm10">PM<sub>10</sub> &micro;g/m<sup>3</sup></a></li>
+                            {% comment %} <li><a class="dropdown-item"  id="co">CO g/m<sup>3</sup></a></li>
+                            <li><a class="dropdown-item"  id="no2">NO<sub>2</sub> g/m<sup>3</sup></a></li>
+                            <li><a class="dropdown-item"  id="nh3">NH<sub>3</sub> g/m<sup>3</sup></a></li> {% endcomment %}
+                            <li><a class="dropdown-item"  id="temperature">Temperature C</a></li>
+                            <li><a class="dropdown-item"  id="humidity">Humidty</sub> %</a></li>
+                        </ul>
+                    </li> -->
+                </ul>
+            </div>
+        </div>
+        <!-- <div><img src="{% static 'images/maintenance.png' %}" height="60" border: 5px;></div>  -->
+
+    </nav>
+
+    <div class="alert-container">
+        <button class="alert-btn">Alert</button>
+        <div class="alert hide">
+            <span class="mtr-img"><img src="https://spcrc.iiit.ac.in/water/static/js/img-ap/marker-icon-2x-gold.png"
+                    width="10px" height="10px" alt=""></span>
+            <span clalss="msg"> <strong>Warning </strong>: This is warning alert</span>
+            <span class="cose-btn">
+                <span class="x-btn">X</span>
+            </span>
+        </div>
+    </div>
+    <!-- Map Menubar ends -->
+
+    <!--legend!-->
+
+    <!-- alert btn area-->
+    <!--input type="checkbox" id="ch1" onClick="tanknodes();">ss!-->
+
+    <!-- map load -->
+    {% leaflet_map "map" callback="window.markers"%}
+
+    </div>
+
+    <!-- Footer Area -->
+    <!--
+    <div class="footer-copyright-area shadow-lg">
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col-lg-12">
+                    <div class="footer-copy-right">
+                        <span>
+                            <a class="link" style="color: #ffffff;" href="https://smartcityresearch.iiit.ac.in/">
+                                <img src="/water/static/images/scrclogo.png" height="45">
+                            </a>
+                            <a class="link"style="bgcolor:#800000"  href="https://iiit.ac.in/">
+                                <img src="/water/static/images/iiit-new.png" height="45">
+                            </a>
+                            <img src="/water/static/images/Telangana Logo_final.jpg" height="45"  style="color: #ffffff;">
+                            {% comment %} <a class="link" style="color: #ffffff;" href="https://spcrc.iiit.ac.in/">SPCRC,</a> {% endcomment %}
+                            {% comment %} <a class="link" style="color: #ffffff;" href="https://www.iiit.ac.in/" >IIIT Hyderabad</a> {% endcomment %}
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    -->
+    <!-- Footer end-->
+
+    <!-- Modal -->
+    <div class="modal fade rounded-150 rounded-xl" id="GraphModal" tabindex="-1" role="dialog" ,>
+        <div class="modal-dialog modal-dialog-centered modal-xl rounded-xl" role="document">
+            <div style="border-radius:20px" class="modal-content bg-dark text-light overflow-hidden">
+                <div class="modal-header rounded-7 row justify-content-end p-2 ">
+                    <div class="col-4 d-flex justify-content-center">
+                        <h5 class="modal-title font-weight-bold" id="myModalLabel">Modal title</h5>
+                    </div>
+                    <div class="col-4 d-flex justify-content-end">
+                        <button type="button" class="close rounded-circle" data-dismiss="modal" aria-label="Close"
+                            id="closeModal">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                </div>
+                <!-- <div class="modal-body">
+                    <div class="container-fluid">
+                        <div class="col">
+                            <div class="row-xl-2  ml-auto">
+                                <div id="legend" class="align-middle"></div>
+                            </div>
+                            <div style="height: 520px" class="row-xl-10">
+                                <canvas id="canvas" class="graph-canvas">
+                                </canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div> -->
+                <div class="modal-body">
+                    <div class="container-fluid" id="graph-container">
+                        <div class="column" id="graphs">
+                            <div class="col-xl-12" id="graph1">
+                                <div class="ml-auto" style="height:40px">
+                                    <div id="legend1" class="align-middle"></div>
+                                </div>
+                                <div style="height:250px" class="table-responsive">
+                                    <canvas id="canvas1" class="graph-canvas">
+                                    </canvas>
+                                </div>
+                            </div>
+                            <div class="col-xl-12" id="graph2">
+                                <div class="ml-auto" style="height:40px">
+                                    <div id="legend2" class="align-middle"></div>
+                                </div>
+                                <div style="height:250px" class="table-responsive">
+                                    <canvas id="canvas2" class="graph-canvas">
+                                    </canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal"
+                        id="closeModalbottom">Close</button>
+                </div> -->
+            </div>
+        </div>
+    </div>
+    <!-- Modal Ends -->
+
+    <!-- Node Status Panel Modal -->
+    <div class="modal fade" id="nodeStatusPanel" tabindex="-1" role="dialog" aria-labelledby="nodeStatusPanelLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-custom" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="nodeStatusPanelLabel">Node Status</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body" id="allNodeStatuses">
+                    <!-- Add your list of node statuses here -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="{% static 'js/graphload.js'%}"></script>
+
+    <script>
+        $(document).ready(function(){
+            $('[data-toggle="modal"]').click(function(){
+                var target = $(this).attr('data-target');
+                $(target).modal('show');
+                document.getElementById("allNodeStatuses").innerHTML = allNodeStatuses();
+            });
+        });
+    </script>
+</body>
+
+</html>

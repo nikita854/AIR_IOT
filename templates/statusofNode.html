@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="statusofNode.css">
+  <title>Node Status Dashboard</title>
+</head>
+
+<body>
+  <div class="v1_2">
+    <span class="v1_3">Status of Node</span>
+    <button id="hideButton" class="hide-button">X</button>
+    <div class="v1_4">
+      <table class="table">
+        <tr align="center">
+          <td><img src="https://spcrc.iiit.ac.in/water/static/js/img-ap/water_tank.png" height="50" width="50">
+            <br><label for="nodeA"> <input type="checkbox" id="nodeA" /></label><br>Water Tank&nbsp;
+          </td>
+          <td><img src="https://spcrc.iiit.ac.in/water/static/js/img-ap/water-meter-new.png" height="50" width="50">
+            <br> <label for="nodeB"></label><input type="checkbox" id="nodeB" /></label><br>Prawah&nbsp;
+          </td>
+          <td><img src="https://spcrc.iiit.ac.in/water/static/js/img-ap/sheni-new.png" height="50" width="50">
+            <br> <label for="nodeC"></label><input type="checkbox" id="nodeC" /></label><br>Shenitech&nbsp;
+          </td>
+          <td><img src="https://spcrc.iiit.ac.in/water/static/js/img-ap/sump.png" height="50" width="50">
+            <br><label for="nodeD"> <input type="checkbox" id="nodeD" /></label><br>Sump&nbsp;
+          </td>
+          <td><img src="https://spcrc.iiit.ac.in/water/static/js/img-ap/borewell.png" height="50" width="50">
+            <br><label for="nodeE"> <input type="checkbox" id="nodeE" /></label><br>Bore Well&nbsp;
+          </td>
+        </tr>
+      </table>
+    </div>
+    <div class="working-container">
+      <h2 class="work">Working Nodes</h2>
+      <div class="intermediate">
+        <div class="node-container working-nodes">
+          <!-- Working nodes will be added here -->
+        </div>
+      </div>
+    </div>
+
+    <div class="not-working-container">
+      <h2 class="nwork">Not Working Nodes</h2>
+      <div class="node-container not-working-nodes">
+        <!-- Not working nodes will be added here -->
+      </div>
+    </div>
+  </div>
+  <button id="showButton" class="show-button">Show</button>
+
+  <script src="statusofNode.js"></script>
+</body>
+
+</html>

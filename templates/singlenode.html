@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html>
+{% load static %}
+{% load leaflet_tags %}
+
+<head>
+    <!-- Meta Data -->
+    <title>Home Page</title>
+    <!-- Meta Data End -->
+
+    <!-- List of js -->
+    <script src="{% static 'js/jquery.min.js' %}"></script>
+    <script src="{% static 'js/bootstrap.min.js' %}"></script>
+    {% leaflet_js %}
+
+    <script src="{% static 'js/leaflet.ajax.js' %}"></script>
+    <script src="{% static 'js/chart.min.js' %}"></script>
+    <script>
+        var param = 1;
+        var nodetype = 1;
+        var graphData;
+        var ctx;
+        var mapid;
+
+        var iiit_url_data_10minutes = " {% url 'iiitdataurl' %} ";
+        var airveda_url_data_10minutes = " {% url 'airvedadataurl' %} ";
+        var mapIconPath = " {% static 'js/img-ap/'%}";
+
+        var nodetype = '{{nodetype | safe}}'
+        var nodes = JSON.parse('{{nodes | safe}}')
+        var latest = JSON.parse('{{latest | safe}}')
+        var graph = JSON.parse('{{graph | safe}}')
+
+        var url;
+        if (nodetype = "AIRVEDA") {
+            url = airveda_url_data_10minutes
+        }
+        else {
+            url = iiit_url_data_10minutes
+        }
+        console.log(nodes)
+
+        var datagraph = {};
+        label = []
+        aqi = []
+        pm25 = []
+        pm10 = []
+        co = []
+        no2 = []
+        nh3 = []
+        humidity = []
+        temperature = []
+        for (elem in graph) {
+            t = new Date(graph[elem].created_at);
+            label.push(t.toLocaleTimeString())
+            aqi.push(graph[elem].aqi)
+            pm25.push(graph[elem].pm25)
+            pm10.push(graph[elem].pm10)
+            co.push(graph[elem].co)
+            no2.push(graph[elem].no2)
+            nh3.push(graph[elem].nh3)
+            humidity.push(graph[elem].humidity)
+            temperature.push(graph[elem].temperature)
+        }
+
+        datagraph[elem] = {
+            'label': label,
+            'aqi': aqi,
+            'pm25': pm25,
+            'pm10': pm10,
+            'co': co,
+            'no2': no2,
+            'nh3': nh3,
+            'humidity': humidity,
+            'temperature': temperature
+        }
+
+        function getRandomColor() {
+            var letters = '0123456789ABCDEF';
+            var color = '#';
+            for (var i = 0; i < 6; i++) {
+                color += letters[Math.floor(Math.random() * 16)];
+            }
+            return color;
+        }
+
+        var chartdata;
+    </script>
+    <script src="{% static 'js/leafletcoloricon.js'%}"></script>
+    <!-- js List End -->
+
+    <!-- List of css and styles -->
+    <link rel="stylesheet" href=" {% static 'css/style.css' %} ">
+    <link rel="stylesheet" href=" {% static 'css/bootstrap.min.css' %} ">
+    <link rel="stylesheet" type="text/css" href="{% static 'fontawesome/css/all.min.css' %}" />
+
+    {% leaflet_css %}
+    <!-- End of css and style list -->
+
+    <style>
+        #mapsingle {
+            width: 100%;
+            height: 100%;
+            border-radius: 20px;
+        }
+
+        .meterlegend {
+            background-color: white;
+            position: relative;
+            width: fit-content;
+            padding-bottom: 40px;
+            padding-left: 20px;
+            padding-right: 20px;
+            font-weight: bold;
+        }
+
+        .card {
+            background-color: white;
+            border-radius: 20px;
+            margin-top: 5px;
+            margin-bottom: 5px;
+        }
+
+        .borderright {
+            border-right: 5px solid;
+            border-image-source: linear-gradient(white, white, grey, black, grey, white, white);
+            border-image-slice: 20;
+            padding: 2em;
+            padding: 0px;
+        }
+
+        .borderleft {
+            border-left: 5px solid;
+            border-image-source: linear-gradient(white, white, grey, black, grey, white, white);
+            border-image-slice: 20;
+            padding: 10px;
+        }
+    </style>
+</head>
+
+<body style="overflow-x:hidden ;">
+
+    <!-- Top Navbar-->
+    <nav class="navbar navbar-expand-lg navbar-light" style="background-color: #123462; color: #ffffff;">
+        <div class="container-fluid">
+            <a class="navbar-brand" style="padding: 0px;">
+                <img src="{% static 'images/logo.png' %}" width="90" height="30" alt="">
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+                data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false"
+                aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class="nav-item">
+                        <a class="nav-link active" aria-current="page" href=" {% url 'home' %} "
+                            style="color: #ffffff;">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" style="color: #ffffff;" href="https://www.iiit.ac.in/">IIIT</a>
+                    </li>
+                    <li class="nav-item ">
+                        <a class="nav-link" style="color: #ffffff;" href="https://spcrc.iiit.ac.in/">SPCRC</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" style="color: #ffffff;" href=" {% url 'graphpage' %} ">Graph</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+    <!-- Top Navbar Ends -->
+
+    <div class="row" style=" padding: 30px;">
+        <!-- Map Menubar-->
+        <!-- Map Menubar ends -->
+
+        <div class=" col-lg-4">
+            <div class="shadow-lg card" id="id" style="font-weight: bold; font-size: 200%;">
+            </div>
+            <div id="metercard" class="shadow-lg card">
+                <div>
+                    <canvas id="meter" style="padding: 20px; "></canvas>
+                    <div id="aqi" style="position: relative; width: fit-content; font-weight: bold; font-size: 500%; margin: 0%;">
+                        000
+                    </div>
+                </div>
+                <div id="aqitext" style="text-align: center; font-size: xx-large;"></div>
+            </div>
+            <div class="card shadow-lg" style="padding: 5px;">
+                {% leaflet_map "mapsingle" callback="markeradd" %}
+            </div>
+        </div>
+        <div class="col-lg-8">
+            <div class="card shadow-lg" style="background-color: white;">
+                <div class="row" style=" padding: 10px; padding-left:10% ;">
+                    <div class="col-lg-3 borderright" style="margin: 15px; width: 20%;">
+                        PM<sub>2.5</sub>
+                        <p id="pm25"
+                            style=" width:80%; text-align: center; font-weight: bold; font-size: xx-large; margin: 0%; ">
+                            000</p>
+                        <p style="text-align: center; width:fit-content;margin: 0%;"> &micro;g/m<sup>3</sup></p>
+                    </div>
+                    <div class="col-lg-3 borderright" style="margin: 15px; width: 20%;">
+                        PM<sub>10</sub>
+                        <p id="pm10" style="text-align: center; font-weight: bold; font-size: xx-large; margin: 0%;">000
+                        </p>
+                        <p style="text-align: center;"> &micro;g/m<sup>3</sup></p>
+                    </div>
+                    <div class="col-lg-3 borderright" style="margin: 15px; width: 20%;">
+                        Temperature
+                        <p id="temperature"
+                            style="text-align: center; font-weight: bold; font-size: xx-large; margin: 0%;">000</p>
+                        <p style="text-align: center;"> &deg; C</p>
+                    </div>
+                    <div class="col-lg-3" style="margin: 15px; width: 20%;">
+                        Humidity
+                        <p id="humidity"
+                            style="text-align: center; font-weight: bold; font-size: xx-large; margin: 0%;">000</p>
+                        <p style="text-align: center;">%</p>
+                    </div>
+                </div>
+            </div>
+            <div class="card" style="height: 80vh; width: 100%;">
+                <canvas id="chart" style="height: 80vh; "></canvas>
+            </div>
+        </div>
+
+        <!-- map load -->
+    </div>
+
+    <!-- Footer Area -->
+    <div class="footer-copyright-area shadow-lg">
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col-lg-12">
+                    <div class="footer-copy-right">
+                        <p>SPCRC, IIIT Hyderabad </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Footer end-->
+
+    <script>
+        window.onload = function () {
+            document.getElementById('id').innerHTML = nodes.location + '<br>' + nodes.name;
+
+            var metercardwidth = $('#metercard').width();
+            var aqiwidth = $('#aqi').width();
+            console.log(aqiwidth);
+            meterchart('AQI', [latest.aqi, 500 - latest.aqi], [coloraqi(latest.aqi)]);
+            $('#meter').height($('#meter').height() * 1.1);
+            var metercardheight = $('#metercard').height();
+            $('#aqi').css('left', (metercardwidth - aqiwidth) / 2);
+            $('#aqi').css('top', -0.1 * metercardheight);
+            var ctx = document.getElementById("chart").getContext('2d');
+            for (item in datagraph) {
+                var graphData = datagraph[item]
+            }
+            var myChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: graphData.label,
+                    datasets: [
+                        {
+                            label: 'AQI',
+                            data: graphData.aqi,
+                            fill: false,
+                            borderColor: getRandomColor()
+                        },
+                        {
+                            label: 'PM' + ' 2.5 g/m3',
+                            data: graphData.pm25,
+                            fill: false,
+                            borderColor: getRandomColor()
+                        },
+                        {
+                            label: 'PM' + ' 10 g/m3',
+                            data: graphData.pm10,
+                            fill: false,
+                            borderColor: getRandomColor()
+                        },
+                        {
+                            label: 'Temperature C',
+                            data: graphData.temperature,
+                            fill: false,
+                            borderColor: getRandomColor()
+                        },
+                        {
+                            label: 'Humidity %',
+                            data: graphData.humidity,
+                            fill: false,
+                            borderColor: getRandomColor()
+                        },
+                        {
+                            label: 'CO g/m3',
+                            data: graphData.co,
+                            fill: false,
+                            borderColor: getRandomColor()
+                        },
+                        {
+                            label: 'NO2 g/m3',
+                            data: graphData.no2,
+                            fill: false,
+                            borderColor: getRandomColor()
+                        },
+                        {
+                            label: 'NH3 g/m3',
+                            data: graphData.nh3,
+                            fill: false,
+                            borderColor: getRandomColor()
+                        }
+                    ]
+                },
+                options: {
+                    scales: {
+                        yAxes: [{
+                            display: true,
+                            ticks: {
+                                beginAtZero: true,
+                                min: 0
+                            }
+                        }]
+                    },
+                    plugins: {
+                        p1: false,
+                        legends: false
+                    }
+                }
+            });
+
+            console.log(latest)
+            document.getElementById('aqi').innerHTML = String(Math.round(latest.aqi));
+            document.getElementById('pm25').innerHTML = String(latest.pm25);
+            document.getElementById('pm10').innerHTML = String(latest.pm10);
+            document.getElementById('temperature').innerHTML = String(latest.temperature);
+            document.getElementById('humidity').innerHTML = String(latest.humidity);
+        }
+
+        function markeradd(map) {
+            mapid = map;
+            cood = { lat: nodes.coordinate[0], lon: nodes.coordinate[1] }
+            mapid.panTo(cood);
+            m = L.marker(cood, { icon: blueIcon }).addTo(mapid);
+        }
+
+        function assignvalue(json) {
+            console.log(json)
+            for (elem in json) {
+                console.log(json[elem])
+                if (json[elem].nodeID == nodes.name) {
+                    latest = json[elem]
+                    document.getElementById('aqi').innerHTML = String(Math.round(latest.aqi));
+                    meterchart('AQI', [latest.aqi, 500 - latest.aqi], [coloraqi(latest.aqi)]);
+                    coloraqi(latest.aqi);
+                    document.getElementById('pm25').innerHTML = String(latest.pm25);
+                    colorpm25(latest.pm25);
+                    document.getElementById('pm10').innerHTML = String(latest.pm10);
+                    colorpm10(latest.pm10);
+                    document.getElementById('temperature').innerHTML = String(latest.temperature);
+                    document.getElementById('humidity').innerHTML = String(latest.humidity);
+                }
+            }
+        }
+
+        function update() {
+            $.ajax({
+                url: url,
+                dataType: 'json',
+                success: function (response) {
+                    assignvalue(response);
+                }
+            });
+        }
+        update();
+
+        setInterval(function () { update(); }, 10 * 60 * 1000);
+
+        function coloraqi(val) {
+            var aqipercent = val / 500 * 100;
+            var angle = aqipercent / 100 * 3.1416;
+            var color;
+            var colorrgb;
+            if (val <= 0) {
+                document.getElementById('aqitext').innerHTML = 'Error';
+                color = "grey";
+            }
+            else if (val > 0 && val <= 50.0) {
+                document.getElementById('aqitext').innerHTML = 'Good';
+                color = "green";
+                colorrgb = 'rgb(0,128,0,0.1)'
+            }
+            else if (val > 30.0 && val <= 100.0) {
+                document.getElementById('aqitext').innerHTML = 'Satisfactory'
+                color = "lime";
+                colorrgb = 'rgb(0,255,0,0.1)'
+            }
+            else if (val > 60.0 && val <= 200.0) {
+                document.getElementById('aqitext').innerHTML = 'Moderate'
+                color = "yellow";
+                colorrgb = 'rgb(255,255,0,0.1)'
+
+            }
+            else if (val > 90.0 && val <= 300.0) {
+                document.getElementById('aqitext').innerHTML = 'Poor'
+                color = "orange";
+                colorrgb = 'rgb(255,165,0,0.1)'
+            }
+            else if (val > 120.0 && val <= 400.0) {
+                document.getElementById('aqitext').innerHTML = 'Very Poor'
+                color = "red";
+                colorrgb = 'rgb(255,0,0,0.1)'
+            }
+            else {
+                document.getElementById('aqitext').innerHTML = 'Severe'
+                color = "brown";
+                colorrgb = 'rgb(165,42,42,0.1)'
+            }
+
+            $('.card').css('background', colorrgb);
+            return color
+        }
+
+        function colorpm25(val) {
+            if (val <= 0) {
+                document.getElementById("pm25").style.color = "GREY";;
+            }
+            else if (val > 0 && val <= 30.0) {
+                console.log(val);
+                document.getElementById("pm25").style.color = "GREEN";
+            }
+            else if (val > 30.0 && val <= 60.0) {
+                document.getElementById("pm25").style.color = "LIME";
+            }
+            else if (val > 60.0 && val <= 90.0) {
+                document.getElementById("pm25").style.color = "YELLOW";
+            }
+            else if (val > 90.0 && val <= 120.0) {
+                document.getElementById("pm25").style.color = "ORANGE";
+            }
+            else if (val > 120.0 && val <= 250.0) {
+                document.getElementById("pm25").style.color = "RED";
+            }
+            else {
+                document.getElementById("pm25").style.color = "BROWN"
+            }
+        }
+
+        function colorpm10(val) {
+            if (val <= 0) {
+                document.getElementById("pm10").style.color = "GREY";;
+            }
+            else if (val > 0 && val <= 50.0) {
+                document.getElementById("pm10").style.color = "GREEN";
+            }
+            else if (val > 30.0 && val <= 100.0) {
+                document.getElementById("pm10").style.color = "LIME";
+            }
+            else if (val > 60.0 && val <= 200.0) {
+                document.getElementById("pm10").style.color = "YELLOW";
+            }
+            else if (val > 90.0 && val <= 300.0) {
+                document.getElementById("pm10").style.color = "ORANGE";
+            }
+            else if (val > 120.0 && val <= 400.0) {
+                document.getElementById("pm10").style.color = "RED";
+            }
+            else {
+                document.getElementById("pm10").style.color = "BROWN"
+            }
+        }
+
+        function meterchart(text, dataVal, backgroundColorVal) {
+            var data = {
+                labels: ['AQI', 'Null'],
+                datasets: [
+                    {
+                        label: 'AQI',
+                        data: dataVal,
+                        backgroundColor: backgroundColorVal
+                    }
+                ]
+            }
+
+            var promisedDeliveryChart = new Chart(document.getElementById('meter'), {
+                type: 'doughnut',
+                data: data,
+                options: {
+                    responsive: true,
+                    circumference: 1 * Math.PI,
+                    rotation: 1 * Math.PI,
+                    legend: {
+                        display: false
+                    },
+                    tooltips: {
+                        filter: function (tooltipItem, data) {
+                            var label = data.labels[tooltipItem.index];
+                            if (label == "AQI") {
+                                return true;
+                            } else {
+                                return false;
+                            }
+                        }
+                    }
+                }
+            });
+
+            Chart.pluginService.register({
+                id: 'p1',
+                beforeDraw: function (chart) {
+                    var width = chart.chart.width,
+                        height = chart.chart.height,
+                        ctx = chart.chart.ctx;
+
+                    ctx.restore();
+                    var fontSize = (height / 114).toFixed(2);
+                    ctx.font = fontSize + "em sans-serif";
+                    ctx.textBaseline = "middle";
+
+                    var text = "AQI",
+                        textX = Math.round((width - ctx.measureText(text).width) / 2),
+                        textY = 0.8 * height;
+
+                    ctx.fillText(text, textX, textY);
+                    ctx.save();
+                }
+            });
+
+            Chart.pluginService.register({
+                id: 'legends',
+                afterDraw: function (chart) {
+                    var width = chart.chart.width,
+                        height = chart.chart.height,
+                        ctx = chart.chart.ctx;
+
+                    ctx.restore();
+                    var fontSize = (height / 200).toFixed(2);
+                    ctx.font = fontSize + "em sans-serif";
+                    ctx.textBaseline = "middle";
+
+                    var text = "500",
+                        textX = 0.85 * width,
+                        textY = 0.95 * height;
+
+                    ctx.fillText(text, textX, textY);
+                    ctx.save();
+
+                    text = "000",
+                        textX = 0.1 * width,
+                        textY = 0.95 * height;
+
+                    ctx.fillText(text, textX, textY);
+                    ctx.save();
+
+                }
+            });
+            // function ends here
+        }
+    </script>
+</body>
+
+</html>

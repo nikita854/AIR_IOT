@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html>
+{% load static %}
+
+<head>
+    <!-- Meta Data -->
+    <title>Home Page</title>
+    <!-- Meta Data End -->
+
+    <!-- List of js -->
+    <script src="{% static 'js/jquery.min.js' %}"></script>
+    <script src="{% static 'js/bootstrap.min.js' %}"></script>
+    <script src="{% static 'js/chart.min.js' %}"></script>
+    <script>
+        console.log("Maybe this is being called");
+        var param = 1;
+        var nodetype = 1;
+        var graphData;
+        var ctx;
+        var multi = true;
+        var singledata;
+
+        var points_iiit = '{{iiit | safe}}';
+        points_iiit = JSON.parse(points_iiit);
+
+        var points_airveda = '{{airveda | safe}}';
+        points_airveda = JSON.parse(points_airveda);
+
+        var iiit_url_data_10minutes = " {% url 'iiitdataurl' %} ";
+        var airveda_url_data_10minutes = " {% url 'airvedadataurl' %} ";
+        var mapIconPath = " {% static 'js/img-ap/'%}";
+
+        var center = { lat: 17.44555, lon: 78.34832 };
+
+        var dataairveda = JSON.parse('{{dataairveda | safe}}')
+        var dataiiit = JSON.parse('{{dataiiit | safe}}')
+
+        var datagraphiiit = {};
+        for (elem in dataiiit) {
+            label = []
+            aqi = []
+            pm25 = []
+            pm10 = []
+            co = []
+            no2 = []
+            nh3 = []
+            humidity = []
+            temperature = []
+            for (item in dataiiit[elem]) {
+                t = new Date(dataiiit[elem][item].created_at);
+                label.push(t.toLocaleTimeString())
+                aqi.push(dataiiit[elem][item].aqi)
+                pm25.push(dataiiit[elem][item].pm25)
+                pm10.push(dataiiit[elem][item].pm10)
+                co.push(dataiiit[elem][item].co)
+                no2.push(dataiiit[elem][item].no2)
+                nh3.push(dataiiit[elem][item].nh3)
+                humidity.push(dataiiit[elem][item].humidity)
+                temperature.push(dataiiit[elem][item].temperature)
+            }
+            datagraphiiit[elem] = {
+                'label': label,
+                'aqi': aqi,
+                'pm25': pm25,
+                'pm10': pm10,
+                'co': co,
+                'no2': no2,
+                'nh3': nh3,
+                'humidity': humidity,
+                'temperature': temperature
+            }
+        }
+        console.log(datagraphiiit)
+
+        var datagraphairveda = {};
+        for (elem in dataairveda) {
+            console.log([elem])
+            label = []
+            aqi = []
+            pm25 = []
+            pm10 = []
+            co = []
+            no2 = []
+            nh3 = []
+            humidity = []
+            temperature = []
+            for (item in dataairveda[elem]) {
+                t = new Date(dataairveda[elem][item].created_at);
+                label.push(t.toLocaleTimeString())
+                aqi.push(dataairveda[elem][item].aqi)
+                pm25.push(dataairveda[elem][item].pm25)
+                pm10.push(dataairveda[elem][item].pm10)
+                co.push(dataairveda[elem][item].co)
+                no2.push(dataairveda[elem][item].no2)
+                nh3.push(dataairveda[elem][item].nh3)
+                humidity.push(dataairveda[elem][item].humidity)
+                temperature.push(dataairveda[elem][item].temperature)
+            }
+            datagraphairveda[elem] = {
+                'label': label,
+                'aqi': aqi,
+                'pm25': pm25,
+                'pm10': pm10,
+                'co': co,
+                'no2': no2,
+                'nh3': nh3,
+                'humidity': humidity,
+                'temperature': temperature
+            }
+        }
+
+        function getRandomColor() {
+            var letters = '0123456789ABCDEF';
+            var color = '#';
+            for (var i = 0; i < 6; i++) {
+                color += letters[Math.floor(Math.random() * 16)];
+            }
+            return color;
+        }
+        graphData = datagraphiiit["Palash Nivas IIITH"];
+        console.log(graphData.label);
+        var chartdata;
+
+    </script>
+    <script src="{% static 'js/graph.js'%}"></script>
+    <!-- js List End -->
+
+    <!-- List of css and styles -->
+    <link rel="stylesheet" href=" {% static 'css/style.css' %} ">
+    <link rel="stylesheet" href=" {% static 'css/bootstrap.min.css' %} ">
+
+    <style>
+        .navbar {
+            display: flex;
+            justify-content: flex-end;
+            flex-direction: row-reverse;
+        }
+
+        .overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            z-index: 9999;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .overlay-content {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 5px;
+            text-align: center;
+        }
+    </style>
+    <!-- End of css and style list -->
+</head>
+
+<body style="overflow-x:hidden ;background-color: black;">
+    <!-- Top Navbar-->
+    <!-- Top Navbar Ends -->
+
+    <div style=" background-color: black;">
+        <!-- Map Menubar-->
+        <nav class="navbar navbar-expand-lg "
+            style="  width: 100%;  z-index: 9999; position: relative; background-color: #123462; color: #ffffff; padding: 0;">
+            <div class="collapse navbar-collapse " id="navbarNav" style="width: fit-content; position: relative;">
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" style="color: #ffffff;" href="https://www.iiit.ac.in/">IIIT</a>
+                    </li>
+                    <li class="nav-item ">
+                        <a class="nav-link" style="color: #ffffff;" href="https://spcrc.iiit.ac.in/">SPCRC</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" style="color: #ffffff;" href=" {% url 'graphpage' %} ">Graph</a>
+                    </li>
+                    <li class="nav-item dropdown btnstyle col-sm-5">
+                        <a class="nav-link dropdown-toggle" href="#" id="typeofnodes" role="button"
+                            data-bs-toggle="dropdown" aria-expanded="false" style="padding: 5px; color: #ffffff;">
+                            All Nodes
+                        </a>
+                        <ul class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink" id="listoftypeofnodes">
+                            <li><a class="dropdown-item" id="allnodes">All Nodes</a></li>
+                            <li><a class="dropdown-item" id="iiitnodes">IIIT Nodes</a></li>
+                            <li><a class="dropdown-item" id="airvedanodes">Airveda</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown btnstyle col-sm-5">
+                        <a class="nav-link dropdown-toggle" href="#" id="nodename" role="button"
+                            data-bs-toggle="dropdown" aria-expanded="false" style="padding: 5px; color: #ffffff;">
+                            Select Node
+                        </a>
+                        <ul class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink" id="nodeslist">
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown btnstyle col-sm-5">
+                        <a class="nav-link dropdown-toggle" href="#" id="parameters" role="button"
+                            data-bs-toggle="dropdown" aria-expanded="false" style="padding: 5px; color: #ffffff;">
+                            AQI
+                        </a>
+                        <ul class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink" id="parametrlist">
+                            <li><a class="dropdown-item" id="aqi">AQI g/m<sup>3</sup></a></li>
+                            <li><a class="dropdown-item" id="pm25">PM<sub>2.5</sub> g/m<sup>3</sup></a></li>
+                            <li><a class="dropdown-item" id="pm10">PM<sub>10</sub> g/m<sup>3</sup></a></li>
+                            <li><a class="dropdown-item" id="co">CO g/m<sup>3</sup></a></li>
+                            <li><a class="dropdown-item" id="no2">NO<sub>2</sub> g/m<sup>3</sup></a></li>
+                            <li><a class="dropdown-item" id="nh3">NH<sub>3</sub> g/m<sup>3</sup></a></li>
+                            <li><a class="dropdown-item" id="temperature">Temperature C</a></li>
+                            <li><a class="dropdown-item" id="humidity">Humidty</sub> %</a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <a class="navbar-brand " href="{% url 'home' %}" style="color: #ffffff; padding-left:10px;">
+                <h2><img src="{% static 'images/logo.png' %}" height="30" border: 5px;> &nbsp;&nbsp;AirIoT Dashboard
+                </h2>
+            </a>
+        </nav>
+        <!-- Map Menubar ends -->
+
+        <!-- Overlay div -->
+        <div class="overlay" id="overlay">
+            <div class="overlay-content">
+                <!-- You can place loading spinners, messages, or any content you want to show in the overlay here -->
+                Loading...
+            </div>
+        </div>
+
+        <!-- Graph load -->
+        <canvas id="myChart" style="width: 100%; height: 80vh;"></canvas>
+    </div>
+
+    <!-- Footer Area -->
+    <div class="footer-copyright-area shadow-lg">
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col-lg-12">
+                    <div class="footer-copy-right">
+                        <p>SPCRC, IIIT Hyderabad </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Footer end-->
+
+    <script>
+        window.onload = function () {
+            addfunction();
+            addIIITfunctions();
+            allnodes();
+            console.log("using graph.html");
+        }
+        var ctx = document.getElementById("myChart").getContext('2d');
+        graphData = datagraphiiit["Rolling Hill"]
+        drawChartAll(nodetype, param, multi);
+    </script>
+</body>
+
+</html>
